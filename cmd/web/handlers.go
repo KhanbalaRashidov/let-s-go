@@ -5,6 +5,7 @@ import (
 	"html/template"
 	"net/http"
 	"runtime/debug"
+	"snippetbox.khanbala.net/internal/models"
 	"strconv"
 )
 
@@ -43,7 +44,20 @@ func (app *application) snippetView(w http.ResponseWriter, r *http.Request) {
 		app.notFound(w)
 		return
 	}
-	fmt.Fprintf(w, "Display a specific snippet with ID %d...", id)
+
+	snippet, err := app.snippets.Get(id)
+	if err != nil {
+		if err == models.ErrNoRecord {
+			app.notFound(w)
+		} else {
+			app.serverError(w, err)
+		}
+		return
+	}
+	fmt.Println(snippet)
+	// Write the snippet data as a plain-text HTTP response body.
+	fmt.Fprintf(w, "%+v", snippet)
+
 }
 
 func (app *application) snippetCreate(w http.ResponseWriter, r *http.Request) {
