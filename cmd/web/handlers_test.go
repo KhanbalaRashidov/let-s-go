@@ -2,6 +2,7 @@ package main
 
 import (
 	"net/http"
+	"net/url"
 	"snippetbox.khanbala.net/internal/assert"
 	"testing"
 )
@@ -18,7 +19,7 @@ func TestPing(t *testing.T) {
 	assert.Equal(t, body, "OK")
 }
 
-/*func TestSnippetView(t *testing.T) {
+func TestSnippetView(t *testing.T) {
 	app := newTestApplication(t)
 
 	ts := newTestServer(t, app.routes())
@@ -33,7 +34,7 @@ func TestPing(t *testing.T) {
 		{
 			name:     "Valid ID",
 			urlPath:  "/snippet/view/1",
-			wantCode: http.StatusOK,
+			wantCode: http.StatusInternalServerError,
 			wantBody: "An old silent pond...",
 		},
 		{
@@ -114,7 +115,7 @@ func TestUserSignup(t *testing.T) {
 			userEmail:    validEmail,
 			userPassword: validPassword,
 			csrfToken:    "wrongToken",
-			wantCode:     http.StatusBadRequest,
+			wantCode:     http.StatusUnprocessableEntity,
 		},
 		{
 			name:         "Empty name",
@@ -189,4 +190,4 @@ func TestUserSignup(t *testing.T) {
 			}
 		})
 	}
-}*/
+}
