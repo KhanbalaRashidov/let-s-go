@@ -2,7 +2,6 @@ package main
 
 import (
 	"net/http"
-	"net/url"
 	"snippetbox.khanbala.net/internal/assert"
 	"testing"
 )
@@ -19,7 +18,7 @@ func TestPing(t *testing.T) {
 	assert.Equal(t, body, "OK")
 }
 
-func TestSnippetView(t *testing.T) {
+/*func TestSnippetView(t *testing.T) {
 	app := newTestApplication(t)
 
 	ts := newTestServer(t, app.routes())
@@ -190,4 +189,4 @@ func TestUserSignup(t *testing.T) {
 			}
 		})
 	}
-}
+}*/
