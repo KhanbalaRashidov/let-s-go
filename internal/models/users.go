@@ -9,18 +9,18 @@ import (
 	"time"
 )
 
+type UserModelInterface interface {
+	Insert(name, email, password string) error
+	Authenticate(email, password string) (int, error)
+	Exists(id int) (bool, error)
+}
+
 type User struct {
 	ID             int
 	Name           string
 	Email          string
 	HashedPassword []byte
 	Created        time.Time
-}
-
-type UserModelInterface interface {
-	Insert(name, email, password string) error
-	Authenticate(email, password string) (int, error)
-	Exists(id int) (bool, error)
 }
 
 type UserModel struct {
@@ -33,10 +33,12 @@ func (m *UserModel) Insert(name, email, password string) error {
 		return err
 	}
 
-	stmt := `INSERT INTO users (name, email, hashed_password, created) VALUES(?, ?, ?, UTC_TIMESTAMP())`
+	stmt := `INSERT INTO users (name, email, hashed_password, created)
+    VALUES(?, ?, ?, UTC_TIMESTAMP())`
 
 	_, err = m.DB.Exec(stmt, name, email, string(hashedPassword))
 	if err != nil {
+
 		var mySQLError *mysql.MySQLError
 		if errors.As(err, &mySQLError) {
 			if mySQLError.Number == 1062 && strings.Contains(mySQLError.Message, "users_uc_email") {
@@ -50,8 +52,6 @@ func (m *UserModel) Insert(name, email, password string) error {
 }
 
 func (m *UserModel) Authenticate(email, password string) (int, error) {
-	// Retrieve the id and hashed password associated with the given email. If
-	// no matching email exists we return the ErrInvalidCredentials error.
 	var id int
 	var hashedPassword []byte
 
@@ -74,13 +74,15 @@ func (m *UserModel) Authenticate(email, password string) (int, error) {
 			return 0, err
 		}
 	}
-	// Otherwise, the password is correct. Return the user ID.
+
 	return id, nil
 }
 
 func (m *UserModel) Exists(id int) (bool, error) {
 	var exists bool
+
 	stmt := "SELECT EXISTS(SELECT true FROM users WHERE id = ?)"
+
 	err := m.DB.QueryRow(stmt, id).Scan(&exists)
 	return exists, err
 }

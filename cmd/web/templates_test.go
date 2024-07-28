@@ -28,11 +28,11 @@ func TestHumanDate(t *testing.T) {
 			want: "17 Mar 2022 at 09:15",
 		},
 	}
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			hd := humanDate(tt.tm)
-			// Use the new assert.Equal() helper to compare the expected and
-			// actual values.
+
 			assert.Equal(t, hd, tt.want)
 		})
 	}

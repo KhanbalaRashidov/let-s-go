@@ -4,7 +4,6 @@ import (
 	"crypto/tls"
 	"database/sql"
 	"flag"
-	"fmt"
 	"github.com/alexedwards/scs/mysqlstore"
 	"github.com/alexedwards/scs/v2" // New import
 	"github.com/go-playground/form/v4"
@@ -28,9 +27,8 @@ type application struct {
 }
 
 func main() {
-	addr := flag.String("addr", ":4000", "http service address")
+	addr := flag.String("addr", ":4000", "HTTP network address")
 	dsn := flag.String("dsn", "root:1234@/snippetbox?parseTime=true", "MySQL data source name")
-	fmt.Println(*dsn)
 
 	flag.Parse()
 
@@ -41,10 +39,8 @@ func main() {
 	if err != nil {
 		errorLog.Fatal(err)
 	}
-
 	defer db.Close()
 
-	// Initialize a new template cache...
 	templateCache, err := newTemplateCache()
 	if err != nil {
 		errorLog.Fatal(err)
@@ -55,6 +51,8 @@ func main() {
 	sessionManager := scs.New()
 	sessionManager.Store = mysqlstore.New(db)
 	sessionManager.Lifetime = 12 * time.Hour
+
+	sessionManager.Cookie.Secure = true
 
 	app := &application{
 		errorLog:       errorLog,
@@ -72,8 +70,8 @@ func main() {
 
 	srv := &http.Server{
 		Addr:         *addr,
-		Handler:      app.routes(),
 		ErrorLog:     errorLog,
+		Handler:      app.routes(),
 		TLSConfig:    tlsConfig,
 		IdleTimeout:  time.Minute,
 		ReadTimeout:  5 * time.Second,

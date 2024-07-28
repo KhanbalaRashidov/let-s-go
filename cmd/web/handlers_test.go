@@ -34,7 +34,7 @@ func TestSnippetView(t *testing.T) {
 		{
 			name:     "Valid ID",
 			urlPath:  "/snippet/view/1",
-			wantCode: http.StatusInternalServerError,
+			wantCode: http.StatusOK,
 			wantBody: "An old silent pond...",
 		},
 		{
@@ -115,7 +115,7 @@ func TestUserSignup(t *testing.T) {
 			userEmail:    validEmail,
 			userPassword: validPassword,
 			csrfToken:    "wrongToken",
-			wantCode:     http.StatusUnprocessableEntity,
+			wantCode:     http.StatusBadRequest,
 		},
 		{
 			name:         "Empty name",

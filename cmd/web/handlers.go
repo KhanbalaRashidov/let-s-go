@@ -11,7 +11,6 @@ import (
 )
 
 func (app *application) home(w http.ResponseWriter, r *http.Request) {
-
 	snippets, err := app.snippets.Latest()
 	if err != nil {
 		app.serverError(w, err)
@@ -21,11 +20,10 @@ func (app *application) home(w http.ResponseWriter, r *http.Request) {
 	data := app.newTemplateData(r)
 	data.Snippets = snippets
 
-	app.render(w, http.StatusOK, "home.tmpl.html", data)
+	app.render(w, http.StatusOK, "home.tmpl", data)
 }
 
 func (app *application) snippetView(w http.ResponseWriter, r *http.Request) {
-
 	params := httprouter.ParamsFromContext(r.Context())
 
 	id, err := strconv.Atoi(params.ByName("id"))
@@ -47,7 +45,17 @@ func (app *application) snippetView(w http.ResponseWriter, r *http.Request) {
 	data := app.newTemplateData(r)
 	data.Snippet = snippet
 
-	app.render(w, http.StatusOK, "view.tmpl.html", data)
+	app.render(w, http.StatusOK, "view.tmpl", data)
+}
+
+func (app *application) snippetCreate(w http.ResponseWriter, r *http.Request) {
+	data := app.newTemplateData(r)
+
+	data.Form = snippetCreateForm{
+		Expires: 365,
+	}
+
+	app.render(w, http.StatusOK, "create.tmpl", data)
 }
 
 type snippetCreateForm struct {
@@ -55,16 +63,6 @@ type snippetCreateForm struct {
 	Content             string `form:"content"`
 	Expires             int    `form:"expires"`
 	validator.Validator `form:"-"`
-}
-
-func (app *application) snippetCreate(w http.ResponseWriter, r *http.Request) {
-
-	data := app.newTemplateData(r)
-
-	data.Form = snippetCreateForm{
-		Expires: 365,
-	}
-	app.render(w, http.StatusOK, "create.tmpl.html", data)
 }
 
 func (app *application) snippetCreatePost(w http.ResponseWriter, r *http.Request) {
@@ -85,7 +83,8 @@ func (app *application) snippetCreatePost(w http.ResponseWriter, r *http.Request
 	if !form.Valid() {
 		data := app.newTemplateData(r)
 		data.Form = form
-		app.render(w, http.StatusUnprocessableEntity, "create.tmpl.html", data)
+
+		app.render(w, http.StatusUnprocessableEntity, "create.tmpl", data)
 		return
 	}
 
@@ -94,15 +93,10 @@ func (app *application) snippetCreatePost(w http.ResponseWriter, r *http.Request
 		app.serverError(w, err)
 		return
 	}
-	// Use the Put() method to add a string value ("Snippet successfully
-	// created!") and the corresponding key ("flash") to the session data.
+
 	app.sessionManager.Put(r.Context(), "flash", "Snippet successfully created!")
 
 	http.Redirect(w, r, fmt.Sprintf("/snippet/view/%d", id), http.StatusSeeOther)
-}
-
-func downloadHandler(w http.ResponseWriter, r *http.Request) {
-	http.ServeFile(w, r, "./ui/static/file.zip")
 }
 
 type userSignupForm struct {
@@ -115,9 +109,9 @@ type userSignupForm struct {
 func (app *application) userSignup(w http.ResponseWriter, r *http.Request) {
 	data := app.newTemplateData(r)
 	data.Form = userSignupForm{}
-	app.render(w, http.StatusOK, "signup.tmpl.html", data)
-
+	app.render(w, http.StatusOK, "signup.tmpl", data)
 }
+
 func (app *application) userSignupPost(w http.ResponseWriter, r *http.Request) {
 	var form userSignupForm
 
@@ -136,7 +130,7 @@ func (app *application) userSignupPost(w http.ResponseWriter, r *http.Request) {
 	if !form.Valid() {
 		data := app.newTemplateData(r)
 		data.Form = form
-		app.render(w, http.StatusUnprocessableEntity, "signup.tmpl.html", data)
+		app.render(w, http.StatusUnprocessableEntity, "signup.tmpl", data)
 		return
 	}
 
@@ -144,12 +138,14 @@ func (app *application) userSignupPost(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		if errors.Is(err, models.ErrDuplicateEmail) {
 			form.AddFieldError("email", "Email address is already in use")
+
 			data := app.newTemplateData(r)
 			data.Form = form
-			app.render(w, http.StatusUnprocessableEntity, "signup.tmpl.html", data)
+			app.render(w, http.StatusUnprocessableEntity, "signup.tmpl", data)
 		} else {
 			app.serverError(w, err)
 		}
+
 		return
 	}
 
@@ -167,7 +163,7 @@ type userLoginForm struct {
 func (app *application) userLogin(w http.ResponseWriter, r *http.Request) {
 	data := app.newTemplateData(r)
 	data.Form = userLoginForm{}
-	app.render(w, http.StatusOK, "login.tmpl.html", data)
+	app.render(w, http.StatusOK, "login.tmpl", data)
 }
 
 func (app *application) userLoginPost(w http.ResponseWriter, r *http.Request) {
@@ -186,7 +182,7 @@ func (app *application) userLoginPost(w http.ResponseWriter, r *http.Request) {
 	if !form.Valid() {
 		data := app.newTemplateData(r)
 		data.Form = form
-		app.render(w, http.StatusUnprocessableEntity, "login.tmpl.html", data)
+		app.render(w, http.StatusUnprocessableEntity, "login.tmpl", data)
 		return
 	}
 
@@ -194,9 +190,10 @@ func (app *application) userLoginPost(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		if errors.Is(err, models.ErrInvalidCredentials) {
 			form.AddNonFieldError("Email or password is incorrect")
+
 			data := app.newTemplateData(r)
 			data.Form = form
-			app.render(w, http.StatusUnprocessableEntity, "login.tmpl.html", data)
+			app.render(w, http.StatusUnprocessableEntity, "login.tmpl", data)
 		} else {
 			app.serverError(w, err)
 		}
@@ -210,7 +207,7 @@ func (app *application) userLoginPost(w http.ResponseWriter, r *http.Request) {
 	}
 
 	app.sessionManager.Put(r.Context(), "authenticatedUserID", id)
-	// Redirect the user to the create snippet page.
+
 	http.Redirect(w, r, "/snippet/create", http.StatusSeeOther)
 }
 

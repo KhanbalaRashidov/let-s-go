@@ -1,6 +1,8 @@
 package mocks
 
-import "snippetbox.khanbala.net/internal/models"
+import (
+	"snippetbox.khanbala.net/internal/models"
+)
 
 type UserModel struct{}
 
@@ -12,12 +14,15 @@ func (m *UserModel) Insert(name, email, password string) error {
 		return nil
 	}
 }
+
 func (m *UserModel) Authenticate(email, password string) (int, error) {
 	if email == "alice@example.com" && password == "pa$$word" {
 		return 1, nil
 	}
+
 	return 0, models.ErrInvalidCredentials
 }
+
 func (m *UserModel) Exists(id int) (bool, error) {
 	switch id {
 	case 1:
